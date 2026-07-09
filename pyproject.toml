@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "project-code-map"
+version = "0.1.0"
+description = "プロジェクトのディレクトリ構造をスキャンし、Pythonファイルから関数一覧を抽出するツール"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    { name = "Your Name", email = "your.email@example.com" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+# 💡 外部依存ライブラリの指定（提示コードで使用されているもの）
+dependencies = [
+    "pathspec>=0.10.0",
+    "tree-sitter>=0.22",
+    "tree-sitter-python>=0.20",
+    "tree-sitter-php>=0.20",
+]
+
+# 💡 コマンドラインから直接実行できるようにする設定
+[tool.hatch.build.targets.wheel]
+force-include = { "src/main.py" = "main.py" }
+
+[project.scripts]
+project-code-map = "main:main"
