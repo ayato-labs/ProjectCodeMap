@@ -114,6 +114,7 @@ jobs:
           pip install pyinstaller
 
       - name: Build executable with PyInstaller
+        shell: bash
         run: |
           pyinstaller --onefile --name project-code-map \
             --collect-data tree_sitter_python \
