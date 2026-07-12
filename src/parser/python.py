@@ -58,7 +58,6 @@ def _extract_functions_from_block(
                 if name.startswith("_"):
                     continue
 
-
             is_async = any(c.type == "async" for c in child.children)
             func_def = PythonParser._extract_function_static(
                 child, (child.text or b"").decode("utf-8"), class_name, is_async
