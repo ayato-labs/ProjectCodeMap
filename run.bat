@@ -16,8 +16,7 @@ echo ==================================================
 echo  🗺️  ProjectCodeMap を起動しています...
 echo ==================================================
 
-rem 仮想環境をアクティベートして、pyproject.tomlで定義したCLIコマンドを実行
-call %VENV_DIR%\Scripts\activate
-project-code-map
+rem 仮想環境をアクティベートして、Pythonモジュールとして実行
+call %VENV_DIR%\Scripts\python -m src %*
 
 pause

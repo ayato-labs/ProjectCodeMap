@@ -50,7 +50,7 @@ _VERSION_OPT = typer.Option(
 
 def _version_callback(value: bool) -> None:
     if value:
-        from .project_code_map import __version__
+        from . import __version__
 
         console = Console()
         console.print(f"ProjectCodeMap v{__version__}")
@@ -62,15 +62,15 @@ console = Console()
 
 @app.command()
 def main(
-    root: Annotated[Path, _ROOT_ARG],
-    format: Annotated[FormatType, _FORMAT_OPT],
-    output: Annotated[Optional[Path], _OUTPUT_OPT] = None,
-    max_tokens: Annotated[Optional[int], _MAX_TOKENS_OPT] = None,
-    config: Annotated[Optional[Path], _CONFIG_OPT] = None,
-    include_hidden: Annotated[bool, _INCLUDE_HIDDEN_OPT] = False,
-    no_gitignore: Annotated[bool, _NO_GITIGNORE_OPT] = False,
-    verbose: Annotated[bool, _VERBOSE_OPT] = False,
-    version: Annotated[bool, _VERSION_OPT] = False,
+    root: Path = _ROOT_ARG,
+    format: FormatType = _FORMAT_OPT,
+    output: Optional[Path] = _OUTPUT_OPT,
+    max_tokens: Optional[int] = _MAX_TOKENS_OPT,
+    config: Optional[Path] = _CONFIG_OPT,
+    include_hidden: bool = _INCLUDE_HIDDEN_OPT,
+    no_gitignore: bool = _NO_GITIGNORE_OPT,
+    verbose: bool = _VERBOSE_OPT,
+    version: bool = _VERSION_OPT,
 ) -> None:
     """
     プロジェクトをスキャンし、AIに最適な形式でディレクトリ構造と関数一覧を出力します。
