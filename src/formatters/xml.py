@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
 from ..config import Config
-from ..models import ProjectMap, DirNode
+from ..models import DirNode, ProjectMap
 from . import FormatterBase, FormatType, register_formatter
 
 

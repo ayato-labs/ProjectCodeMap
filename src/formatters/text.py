@@ -1,7 +1,7 @@
 """Text/Markdown formatters"""
 
 from ..config import Config
-from ..models import ProjectMap, DirNode
+from ..models import DirNode, ProjectMap
 from . import FormatterBase, FormatType, register_formatter
 
 
