@@ -217,7 +217,7 @@ git push --tags
 
 ```
 project-code-map
-├── src/project_code_map/
+├── src/
 │   ├── __init__.py
 │   ├── cli.py              # Typer CLI エントリーポイント
 │   ├── config.py           # 設定読み込み (pydantic + pyproject.toml)

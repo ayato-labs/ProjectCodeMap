@@ -54,13 +54,13 @@ uv run pytest -v
 ## アーキテクチャ指針
 
 ### 新しい言語パーサーを追加する場合
-1. `src/project_code_map/parser/` に `base.py` を継承したパーサーを実装
+1. `src/parser/` に `base.py` を継承したパーサーを実装
 2. `tree-sitter-<language>` を依存に追加
 3. `parser/__init__.py` のレジストリに登録
 4. テストケースを `tests/parser/test_<language>.py` に追加
 
 ### 新しい出力フォーマッタを追加する場合
-1. `src/project_code_map/formatters/` にフォーマッタクラスを実装
+1. `src/formatters/` にフォーマッタクラスを実装
 2. `formatters/__init__.py` のレジストリに登録
 3. CLI の `--format` 選択肢に追加
 
