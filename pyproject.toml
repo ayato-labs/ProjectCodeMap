@@ -5,29 +5,123 @@ build-backend = "hatchling.build"
 [project]
 name = "project-code-map"
 version = "0.1.0"
-description = "プロジェクトのディレクトリ構造をスキャンし、Pythonファイルから関数一覧を抽出するツール"
+description = "AI駆動開発のためのディレクトリ構造マッピングツール。AIへのコンテキスト伝達を最適化し、最小限のトークンでコードベース全体を理解可能にします。"
 readme = "README.md"
 requires-python = ">=3.8"
+license = { text = "MIT" }
 authors = [
     { name = "saiha", email = "saiha@example.com" }
 ]
+maintainers = [
+    { name = "saiha", email = "saiha@example.com" }
+]
+keywords = [
+    "ai-development",
+    "aidd",
+    "context-engineering",
+    "code-analysis",
+    "project-structure",
+    "tree-sitter",
+    "ast",
+    "developer-tools",
+    "productivity"
+]
 classifiers = [
-    "Programming Language :: Python :: 3",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Code Generators",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+    "Typing :: Typed"
 ]
-
-# 💡 外部依存ライブラリの指定（提示コードで使用されているもの）
+urls = { Homepage = "https://github.com/ayato-labs/ProjectCodeMap", Repository = "https://github.com/ayato-labs/ProjectCodeMap", Issues = "https://github.com/ayato-labs/ProjectCodeMap/issues", Changelog = "https://github.com/ayato-labs/ProjectCodeMap/releases" }
 dependencies = [
     "pathspec>=0.10.0",
     "tree-sitter>=0.22",
     "tree-sitter-python>=0.20",
     "tree-sitter-php>=0.20",
+    "typer>=0.9",
+    "rich>=13.0",
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
 ]
 
-# 💡 コマンドラインから直接実行できるようにする設定
-[tool.hatch.build.targets.wheel]
-force-include = { "src/main.py" = "main.py" }
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.3",
+    "mypy>=1.0",
+    "build>=1.0",
+    "twine>=4.0",
+]
 
 [project.scripts]
-project-code-map = "main:main"
+project-code-map = "project_code_map.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/project_code_map"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+src = ["src"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "T20", # flake8-print
+]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+strict_optional = true
+no_implicit_reexport = true
+check_untyped_defs = true
+
+[tool.mypy."project_code_map.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "--strict-markers --strict-config -v"
+
+[tool.coverage.run]
+source = ["src/project_code_map"]
+omit = ["tests/*", "*/__pycache__/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
