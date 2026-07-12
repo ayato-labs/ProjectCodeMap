@@ -20,13 +20,13 @@ _PY_FUNC_QUERY = """
     name: (identifier) @name
     parameters: (parameters) @params
     body: (_) @body
-  ) @func
+  ) @func_def
   (decorated_definition
     (function_definition
       name: (identifier) @name
       parameters: (parameters) @params
       body: (_) @body
-    ) @func
+    ) @func_def
   )
 )
 """
@@ -43,6 +43,37 @@ _PY_CLASS_QUERY = """
 _PY_PARSER = Parser(_PY_LANGUAGE)
 _PY_FUNC_QUERY_OBJ = Query(_PY_LANGUAGE, _PY_FUNC_QUERY)
 _PY_CLASS_QUERY_OBJ = Query(_PY_LANGUAGE, _PY_CLASS_QUERY)
+
+
+def _extract_functions_from_block(node: Node, content: str, class_name: Optional[str]) -> list[FunctionDef]:
+    """ブロックノードから関数定義を抽出（クラスのメソッド用）"""
+    functions: list[FunctionDef] = []
+    for child in node.children:
+        if child.type == "function_definition":
+            # Skip private methods
+            name_node = child.child_by_field_name("name")
+            if name_node:
+                name = name_node.text.decode("utf-8")
+                if name.startswith("_"):
+                    continue
+            
+            is_async = any(c.type == "async" for c in child.children)
+            func_def = PythonParser._extract_function_static(child, child.text.decode("utf-8"), class_name, is_async)
+            if func_def:
+                functions.append(func_def)
+        elif child.type == "decorated_definition":
+            # Handle decorated methods
+            func_node = child.child_by_field_name("definition")
+            if func_node and func_node.type == "function_definition":
+                name_node = func_node.child_by_field_name("name")
+                if name_node:
+                    name = name_node.text.decode("utf-8")
+                    if not name.startswith("_"):
+                        is_async = any(c.type == "async" for c in func_node.children)
+                        func_def = PythonParser._extract_function_static(func_node, func_node.text.decode("utf-8"), class_name, is_async)
+                        if func_def:
+                            functions.append(func_def)
+    return functions
 
 
 class PythonParser(ParserBase):
@@ -86,8 +117,16 @@ class PythonParser(ParserBase):
                 class_name_node = node.child_by_field_name("name")
                 if class_name_node:
                     current_class = class_name_node.text.decode("utf-8")
+                
+                # Extract methods from class body
+                class_body = node.child_by_field_name("body")
+                if class_body:
+                    methods = _extract_functions_from_block(class_body, content, current_class)
+                    for method in methods:
+                        # Methods are already processed with correct class_name
+                        pass
 
-            elif capture_name in ("func",):
+            elif capture_name in ("func_def",):
                 # Handle both function_definition and decorated_definition
                 if node.type == "decorated_definition":
                     # Get the inner function_definition
@@ -113,9 +152,9 @@ class PythonParser(ParserBase):
 
         return functions
 
-    def _extract_function(
-        self, node: Node, content: str, class_name: Optional[str], is_async: bool
-    ) -> Optional[FunctionDef]:
+    @staticmethod
+    def _extract_function_static(node: Node, content: str, class_name: Optional[str], is_async: bool) -> Optional[FunctionDef]:
+        """静的メソッドとして関数定義を抽出（クラスメソッド用）"""
         name_node = node.child_by_field_name("name")
         params_node = node.child_by_field_name("parameters")
 
@@ -126,7 +165,7 @@ class PythonParser(ParserBase):
         params = params_node.text.decode("utf-8") if params_node else "()"
 
         # ドックストリング抽出
-        docstring = self._extract_docstring(node, content)
+        docstring = PythonParser._extract_docstring_static(node, content)
 
         # シグネチャ構築
         signature = f"{'async ' if is_async else ''}{name}{params}"
@@ -142,7 +181,13 @@ class PythonParser(ParserBase):
             class_name=class_name,
         )
 
-    def _extract_docstring(self, node: Node, content: str) -> Optional[str]:
+    def _extract_function(
+        self, node: Node, content: str, class_name: Optional[str], is_async: bool
+    ) -> Optional[FunctionDef]:
+        return self._extract_function_static(node, content, class_name, is_async)
+
+    @staticmethod
+    def _extract_docstring_static(node: Node, content: str) -> Optional[str]:
         """関数/クラスの直後の文字列リテラルをドックストリングとして抽出"""
         body = node.child_by_field_name("body")
         if not body:
@@ -153,10 +198,13 @@ class PythonParser(ParserBase):
             if child.type == "expression_statement":
                 expr = child.child(0)
                 if expr and expr.type == "string":
-                    return self._truncate_docstring(expr.text.decode("utf-8").strip('"\''), 200)
+                    return PythonParser._truncate_docstring(expr.text.decode("utf-8").strip('"\''), 200)
             elif child.type != "comment":
                 break
         return None
+
+    def _extract_docstring(self, node: Node, content: str) -> Optional[str]:
+        return self._extract_docstring_static(node, content)
 
 
 register_parser(PythonParser())

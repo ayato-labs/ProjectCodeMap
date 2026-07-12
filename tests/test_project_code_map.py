@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from src.project_code_map import scan_project
-from src.project_code_map.config import Config
+from project_code_map import scan_project
+from project_code_map.config import Config
 
 
 def test_scan_simple_project():
@@ -102,7 +102,7 @@ def test_pcmignore_exclusion():
 
 def test_format_text():
     """Text フォーマッタのテスト"""
-    from src.project_code_map.formatters import get_formatter, FormatType
+    from project_code_map.formatters import get_formatter, FormatType
 
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
@@ -120,7 +120,7 @@ def test_format_text():
 
 def test_format_json():
     """JSON フォーマッタのテスト"""
-    from src.project_code_map.formatters import get_formatter, FormatType
+    from project_code_map.formatters import get_formatter, FormatType
     import json
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -141,7 +141,7 @@ def test_format_json():
 
 def test_format_xml():
     """XML フォーマッタのテスト"""
-    from src.project_code_map.formatters import get_formatter, FormatType
+    from project_code_map.formatters import get_formatter, FormatType
     import xml.etree.ElementTree as ET
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -161,7 +161,7 @@ def test_format_xml():
 
 def test_format_aider():
     """Aider フォーマッタのテスト"""
-    from src.project_code_map.formatters import get_formatter, FormatType
+    from project_code_map.formatters import get_formatter, FormatType
 
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)

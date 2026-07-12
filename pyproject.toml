@@ -7,7 +7,7 @@ name = "project-code-map"
 version = "0.1.0"
 description = "AI駆動開発のためのディレクトリ構造マッピングツール。AIへのコンテキスト伝達を最適化し、最小限のトークンでコードベース全体を理解可能にします。"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [
     { name = "saiha", email = "saiha@example.com" }
@@ -32,7 +32,6 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -62,7 +61,36 @@ dev = [
     "mypy>=1.0",
     "build>=1.0",
     "twine>=4.0",
+    "pyinstaller>=6.0",
 ]
+
+[tool.pyinstaller]
+# PyInstaller設定
+hidden-imports = [
+    "tree_sitter_python",
+    "tree_sitter_php",
+]
+collect-data-files = [
+    { from = "tree_sitter_python", to = "tree_sitter_python" },
+    { from = "tree_sitter_php", to = "tree_sitter_php" },
+]
+
+[tool.semantic_release]
+version_variable = "src/project_code_map/__init__.py:__version__"
+branch = "main"
+tag_format = "v{version}"
+changelog_file = "CHANGELOG.md"
+changelog_template = "templates/changelog.j2"
+upload_to_pypi = true
+upload_to_vcs = true
+allow_zero_version = true
+
+[tool.semantic_release.commit_parser_options]
+parser = "conventional"
+parser_options = { ignore_scopes = ["dependencies"] }
+
+[tool.semantic_release.changelog]
+template = "templates/changelog.j2"
 
 [project.scripts]
 project-code-map = "project_code_map.cli:app"

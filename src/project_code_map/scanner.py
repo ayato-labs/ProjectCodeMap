@@ -9,7 +9,7 @@ from pathspec.patterns import GitWildMatchPattern
 
 from .config import Config
 from .models import DirNode, FileNode, ProjectMap, ProjectStats
-from .parser import get_parser
+from .parser import get_parser, ParserBase
 
 
 def _load_gitignore(root: Path) -> Optional[PathSpec]:
@@ -69,6 +69,13 @@ def scan_project(root: Path, config: Config) -> ProjectMap:
     spec = _load_gitignore(root)
     exclude_log_dirs = {"log", "logs", ".logs"}
 
+    # パーサーを事前初期化（言語名でキー管理）
+    parsers: dict[str, ParserBase] = {}
+    for lang in config.languages:
+        parser = get_parser(lang)
+        if parser:
+            parsers[lang] = parser
+
     # ルートディレクトリノード
     root_node = DirNode(
         name=root.name,
@@ -103,7 +110,7 @@ def scan_project(root: Path, config: Config) -> ProjectMap:
                 _walk(entry, subdir)
 
             elif entry.is_file():
-                file_node = _process_file(entry, root, config)
+                file_node = _process_file(entry, root, config, parsers)
                 if file_node:
                     parent_dir.files.append(file_node)
                     stats.add_file(file_node)
@@ -114,7 +121,7 @@ def scan_project(root: Path, config: Config) -> ProjectMap:
     return ProjectMap(root=root_node, stats=stats)
 
 
-def _process_file(file_path: Path, root: Path, config: Config) -> Optional[FileNode]:
+def _process_file(file_path: Path, root: Path, config: Config, parsers: dict[str, ParserBase]) -> Optional[FileNode]:
     """単一ファイルを処理"""
     try:
         stat = file_path.stat()
@@ -126,7 +133,9 @@ def _process_file(file_path: Path, root: Path, config: Config) -> Optional[FileN
     rel_path = file_path.relative_to(root)
     ext = file_path.suffix.lower()
 
-    parser = get_parser(ext)
+    # 拡張子から言語名を推定
+    language = _ext_to_language(ext)
+    parser = parsers.get(language) if language else None
     if not parser:
         # 解析非対応言語もファイルとして記録
         return FileNode(
@@ -153,3 +162,17 @@ def _process_file(file_path: Path, root: Path, config: Config) -> Optional[FileN
             size_bytes=stat.st_size,
             error=str(e),
         )
+
+
+def _ext_to_language(ext: str) -> Optional[str]:
+    """拡張子から言語名を推定"""
+    mapping = {
+        ".py": "python",
+        ".pyw": "python",
+        ".pyi": "python",
+        ".php": "php",
+        ".phtml": "php",
+        ".php7": "php",
+        ".php8": "php",
+    }
+    return mapping.get(ext)
