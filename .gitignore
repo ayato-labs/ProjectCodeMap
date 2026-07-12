@@ -14,5 +14,11 @@ dist/
 build/
 *.egg-info/
 
+# PyInstaller
+*.spec
+
 # Project output
 project_code_map_output.txt
+
+# uv
+uv.lock
