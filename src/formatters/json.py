@@ -1,9 +1,10 @@
 """JSON フォーマッタ"""
 
 import json
-from . import FormatterBase, FormatType, register_formatter
-from ..models import ProjectMap
+
 from ..config import Config
+from ..models import ProjectMap
+from . import FormatterBase, FormatType, register_formatter
 
 
 class JsonFormatter(FormatterBase):

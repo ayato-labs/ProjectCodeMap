@@ -1,7 +1,7 @@
 """Text/Markdown formatters"""
 
-from ..models import ProjectMap
 from ..config import Config
+from ..models import ProjectMap
 from . import FormatterBase, FormatType, register_formatter
 
 
@@ -17,7 +17,6 @@ class TextFormatter(FormatterBase):
         lines.append("=" * 60)
         lines.append("")
 
-        # ディレクトリ構造
         lines.append("## Directory Structure")
         lines.append("")
         self._render_dir(project_map.root, lines, 0)
@@ -26,7 +25,6 @@ class TextFormatter(FormatterBase):
         lines.append("-" * 40)
         lines.append("")
 
-        # 関数インデックス
         lines.append("## Function Index")
         lines.append("")
 
@@ -47,7 +45,6 @@ class TextFormatter(FormatterBase):
                     lines.append(f"  > {doc}")
             lines.append("")
 
-        # 統計
         stats = project_map.stats
         lines.append("-" * 40)
         lines.append(f"Total files: {stats.total_files}")
@@ -72,8 +69,6 @@ class TextFormatter(FormatterBase):
             is_last = i == len(dir_node.subdirs) - 1
             prefix = "└──" if is_last else "├──"
             lines.append(f"{indent}│   {prefix} {sub.name}/")
-            # 再帰的に描画する場合は indent を調整
-            # 簡易実装のためサブディレクトリの詳細表示は省略
 
 
 class MarkdownFormatter(FormatterBase):

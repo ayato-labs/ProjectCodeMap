@@ -1,6 +1,5 @@
 """設定管理"""
 
-import re
 from pathlib import Path
 from typing import Optional
 

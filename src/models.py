@@ -17,6 +17,7 @@ class FunctionDef:
     is_async: bool = False
     is_method: bool = False
     class_name: Optional[str] = None
+    decorators: list[str] = field(default_factory=list)
 
     @property
     def qualified_name(self) -> str:

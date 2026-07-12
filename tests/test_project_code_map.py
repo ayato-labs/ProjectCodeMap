@@ -4,9 +4,8 @@ import tempfile
 from pathlib import Path
 
 import pytest
-
-from project_code_map import scan_project
-from project_code_map.config import Config
+from src import scan_project
+from src.config import Config
 
 
 def test_scan_simple_project():
@@ -52,7 +51,8 @@ def helper(x: int) -> int:
 
         # 基本検証
         assert project_map.stats.total_files == 3
-        assert project_map.stats.total_functions >= 4  # hello, greet, async_hello, helper, inner_func
+        # hello, greet, async_hello, helper, inner_func
+        assert project_map.stats.total_functions >= 4
 
         # 関数が正しく抽出されているか
         all_funcs = project_map.root.all_functions
@@ -102,7 +102,7 @@ def test_pcmignore_exclusion():
 
 def test_format_text():
     """Text フォーマッタのテスト"""
-    from project_code_map.formatters import get_formatter, FormatType
+    from src.formatters import FormatType, get_formatter
 
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
@@ -120,8 +120,9 @@ def test_format_text():
 
 def test_format_json():
     """JSON フォーマッタのテスト"""
-    from project_code_map.formatters import get_formatter, FormatType
     import json
+
+    from src.formatters import FormatType, get_formatter
 
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
@@ -141,8 +142,9 @@ def test_format_json():
 
 def test_format_xml():
     """XML フォーマッタのテスト"""
-    from project_code_map.formatters import get_formatter, FormatType
     import xml.etree.ElementTree as ET
+
+    from src.formatters import FormatType, get_formatter
 
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
@@ -161,7 +163,7 @@ def test_format_xml():
 
 def test_format_aider():
     """Aider フォーマッタのテスト"""
-    from project_code_map.formatters import get_formatter, FormatType
+    from src.formatters import FormatType, get_formatter
 
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)

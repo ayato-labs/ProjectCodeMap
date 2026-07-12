@@ -5,8 +5,8 @@ from typing import Optional
 import tree_sitter_php as tsphp
 from tree_sitter import Language, Node, Parser, Query
 
-from .base import FunctionDef, ParserBase, register_parser
 from ..config import Config
+from .base import FunctionDef, ParserBase, register_parser
 
 # tree-sitter-php 0.26+ の API に対応
 _PHP_LANGUAGE = Language(tsphp.language_php())
@@ -70,7 +70,7 @@ class PHPParser(ParserBase):
             return None
 
         # プライベート関数をスキップ
-        if name.startswith("_") and not getattr(config, 'include_private', True):
+        if name.startswith("_") and not getattr(config, "include_private", True):
             return None
 
         params_node = node.child_by_field_name("parameters")

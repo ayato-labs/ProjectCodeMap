@@ -4,8 +4,8 @@ import json
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
-from ..models import ProjectMap, FileNode, FunctionDef
 from ..config import Config
+from ..models import ProjectMap
 from . import FormatterBase, FormatType, register_formatter
 
 
@@ -18,11 +18,9 @@ class XMLFormatter(FormatterBase):
         root = ET.Element("project_map")
         root.set("root", str(project_map.root.path))
 
-        # 構造
         structure = ET.SubElement(root, "structure")
         self._add_dir_element(structure, project_map.root)
 
-        # 関数インデックス
         functions_elem = ET.SubElement(root, "functions")
         for file_node in project_map.root.all_files:
             if not file_node.functions:
@@ -42,7 +40,6 @@ class XMLFormatter(FormatterBase):
                 if func.docstring:
                     func_elem.set("docstring", func.docstring)
 
-        # 統計
         stats = ET.SubElement(root, "stats")
         s = project_map.stats
         stats.set("total_files", str(s.total_files))
@@ -50,7 +47,6 @@ class XMLFormatter(FormatterBase):
         stats.set("total_functions", str(s.total_functions))
         stats.set("estimated_tokens", str(s.estimated_tokens))
 
-        # 整形
         rough = ET.tostring(root, encoding="unicode")
         reparsed = minidom.parseString(rough)
         return reparsed.toprettyxml(indent="  ")
@@ -89,7 +85,7 @@ class JSONFormatter(FormatterBase):
         }
         return json.dumps(data, indent=2, ensure_ascii=False)
 
-    def _dir_to_dict(self, dir_node) -> dict:
+    def _dir_to_dict(self, dir_node):
         return {
             "name": dir_node.name,
             "path": str(dir_node.relative_path),
@@ -105,7 +101,7 @@ class JSONFormatter(FormatterBase):
             "subdirectories": [self._dir_to_dict(s) for s in dir_node.subdirs],
         }
 
-    def _functions_to_list(self, project_map: ProjectMap) -> list:
+    def _functions_to_list(self, project_map: ProjectMap):
         result = []
         for file_node in project_map.root.all_files:
             if not file_node.functions:

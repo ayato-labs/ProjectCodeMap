@@ -2,10 +2,9 @@
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Optional
 
-from ..models import ProjectMap
 from ..config import Config
+from ..models import ProjectMap
 
 
 class FormatType(str, Enum):
@@ -53,4 +52,4 @@ def list_formatters() -> list[FormatType]:
 
 
 # フォーマッタをインポートして自動登録
-from . import text, structured  # noqa: F401
+from . import structured, text  # noqa: F401, E402

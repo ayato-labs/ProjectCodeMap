@@ -1,21 +1,20 @@
 """Python パーサー (tree-sitter 使用)"""
 
-from pathlib import Path
 from typing import Optional
 
 import tree_sitter_python as tspython
 from tree_sitter import Language, Node, Parser, Query, QueryCursor
 
-from .base import ParserBase, register_parser, FunctionDef
 from ..config import Config
-
+from .base import FunctionDef, ParserBase, register_parser
 
 # tree-sitter-python 0.26+ の API に対応
 _PY_LANGUAGE = Language(tspython.language())
 
 # Separate queries to avoid tree-sitter query engine bug with multiple patterns + predicates
+# Working format: use list syntax [...] to combine multiple patterns
 _PY_FUNC_QUERY = """
-(
+[
   (function_definition
     name: (identifier) @name
     parameters: (parameters) @params
@@ -28,7 +27,7 @@ _PY_FUNC_QUERY = """
       body: (_) @body
     ) @func_def
   )
-)
+]
 """
 
 _PY_CLASS_QUERY = """
@@ -45,7 +44,9 @@ _PY_FUNC_QUERY_OBJ = Query(_PY_LANGUAGE, _PY_FUNC_QUERY)
 _PY_CLASS_QUERY_OBJ = Query(_PY_LANGUAGE, _PY_CLASS_QUERY)
 
 
-def _extract_functions_from_block(node: Node, content: str, class_name: Optional[str]) -> list[FunctionDef]:
+def _extract_functions_from_block(
+    node: Node, content: str, class_name: Optional[str]
+) -> list[FunctionDef]:
     """ブロックノードから関数定義を抽出（クラスのメソッド用）"""
     functions: list[FunctionDef] = []
     for child in node.children:
@@ -53,12 +54,15 @@ def _extract_functions_from_block(node: Node, content: str, class_name: Optional
             # Skip private methods
             name_node = child.child_by_field_name("name")
             if name_node:
-                name = name_node.text.decode("utf-8")
+                name = (name_node.text or b"").decode("utf-8")
                 if name.startswith("_"):
                     continue
-            
+
+
             is_async = any(c.type == "async" for c in child.children)
-            func_def = PythonParser._extract_function_static(child, child.text.decode("utf-8"), class_name, is_async)
+            func_def = PythonParser._extract_function_static(
+                child, (child.text or b"").decode("utf-8"), class_name, is_async
+            )
             if func_def:
                 functions.append(func_def)
         elif child.type == "decorated_definition":
@@ -67,10 +71,12 @@ def _extract_functions_from_block(node: Node, content: str, class_name: Optional
             if func_node and func_node.type == "function_definition":
                 name_node = func_node.child_by_field_name("name")
                 if name_node:
-                    name = name_node.text.decode("utf-8")
+                    name = (name_node.text or b"").decode("utf-8")
                     if not name.startswith("_"):
                         is_async = any(c.type == "async" for c in func_node.children)
-                        func_def = PythonParser._extract_function_static(func_node, func_node.text.decode("utf-8"), class_name, is_async)
+                        func_def = PythonParser._extract_function_static(
+                            func_node, (func_node.text or b"").decode("utf-8"), class_name, is_async
+                        )
                         if func_def:
                             functions.append(func_def)
     return functions
@@ -87,11 +93,11 @@ class PythonParser(ParserBase):
 
     def parse(self, content: str, config: Config) -> list[FunctionDef]:
         tree = _PY_PARSER.parse(bytes(content, "utf-8"))
-        
+
         # Run function query
         func_cursor = QueryCursor(_PY_FUNC_QUERY_OBJ)
         func_captures = func_cursor.captures(tree.root_node)
-        
+
         # Run class query
         class_cursor = QueryCursor(_PY_CLASS_QUERY_OBJ)
         class_captures = class_cursor.captures(tree.root_node)
@@ -101,11 +107,11 @@ class PythonParser(ParserBase):
 
         # Combine and sort all captures by line number
         all_nodes: list[tuple[int, Node, str]] = []
-        
+
         for capture_name, nodes in func_captures.items():
             for node in nodes:
                 all_nodes.append((node.start_point[0], node, capture_name))
-        
+
         for capture_name, nodes in class_captures.items():
             for node in nodes:
                 all_nodes.append((node.start_point[0], node, capture_name))
@@ -116,13 +122,13 @@ class PythonParser(ParserBase):
             if capture_name in ("class",):
                 class_name_node = node.child_by_field_name("name")
                 if class_name_node:
-                    current_class = class_name_node.text.decode("utf-8")
-                
+                    current_class = (class_name_node.text or b"").decode("utf-8")
+
                 # Extract methods from class body
                 class_body = node.child_by_field_name("body")
                 if class_body:
                     methods = _extract_functions_from_block(class_body, content, current_class)
-                    for method in methods:
+                    for _method in methods:
                         # Methods are already processed with correct class_name
                         pass
 
@@ -140,7 +146,7 @@ class PythonParser(ParserBase):
                 # Skip private functions (starting with _)
                 name_node = func_node.child_by_field_name("name")
                 if name_node:
-                    name = name_node.text.decode("utf-8")
+                    name = (name_node.text or b"").decode("utf-8")
                     if name.startswith("_"):
                         continue
 
@@ -153,7 +159,9 @@ class PythonParser(ParserBase):
         return functions
 
     @staticmethod
-    def _extract_function_static(node: Node, content: str, class_name: Optional[str], is_async: bool) -> Optional[FunctionDef]:
+    def _extract_function_static(
+        node: Node, content: str, class_name: Optional[str], is_async: bool
+    ) -> Optional[FunctionDef]:
         """静的メソッドとして関数定義を抽出（クラスメソッド用）"""
         name_node = node.child_by_field_name("name")
         params_node = node.child_by_field_name("parameters")
@@ -161,8 +169,8 @@ class PythonParser(ParserBase):
         if not name_node:
             return None
 
-        name = name_node.text.decode("utf-8")
-        params = params_node.text.decode("utf-8") if params_node else "()"
+        name = (name_node.text or b"").decode("utf-8")
+        params = (params_node.text or b"").decode("utf-8") if params_node else "()"
 
         # ドックストリング抽出
         docstring = PythonParser._extract_docstring_static(node, content)
@@ -198,7 +206,10 @@ class PythonParser(ParserBase):
             if child.type == "expression_statement":
                 expr = child.child(0)
                 if expr and expr.type == "string":
-                    return PythonParser._truncate_docstring(expr.text.decode("utf-8").strip('"\''), 200)
+                    return PythonParser._truncate_docstring(
+                        (expr.text or b"").decode("utf-8").strip("\"'"), 200
+                    )
+
             elif child.type != "comment":
                 break
         return None

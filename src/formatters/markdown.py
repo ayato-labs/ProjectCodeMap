@@ -1,8 +1,8 @@
 """Markdown フォーマッタ"""
 
-from . import FormatterBase, FormatType, register_formatter
-from ..models import ProjectMap
 from ..config import Config
+from ..models import ProjectMap
+from . import FormatterBase, FormatType, register_formatter
 
 
 class MarkdownFormatter(FormatterBase):
@@ -34,7 +34,10 @@ class MarkdownFormatter(FormatterBase):
         lines.append(f"- **Total directories**: {project_map.stats.total_dirs}")
         lines.append(f"- **Total functions**: {project_map.stats.total_functions}")
         lines.append(f"- **Estimated tokens**: {project_map.stats.estimated_tokens}")
-        lines.append(f"- **Languages**: {', '.join(f'{k}({v})' for k, v in project_map.stats.languages.items())}")
+        lines.append(
+            "- **Languages**: "
+            + ", ".join(f"{k}({v})" for k, v in project_map.stats.languages.items())
+        )
 
         return "\n".join(lines)
 

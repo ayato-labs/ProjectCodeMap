@@ -1,8 +1,8 @@
 """Aider 互換リポジトリマップフォーマッタ"""
 
-from . import FormatterBase, FormatType, register_formatter
-from ..models import ProjectMap
 from ..config import Config
+from ..models import ProjectMap
+from . import FormatterBase, FormatType, register_formatter
 
 
 class AiderFormatter(FormatterBase):

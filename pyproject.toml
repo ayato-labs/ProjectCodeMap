@@ -76,7 +76,7 @@ collect-data-files = [
 ]
 
 [tool.semantic_release]
-version_variable = "src/project_code_map/__init__.py:__version__"
+version_variable = "src/__init__.py:__version__"
 branch = "main"
 tag_format = "v{version}"
 changelog_file = "CHANGELOG.md"
@@ -93,10 +93,10 @@ parser_options = { ignore_scopes = ["dependencies"] }
 template = "templates/changelog.j2"
 
 [project.scripts]
-project-code-map = "project_code_map.cli:app"
+project-code-map = "src.cli:app"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/project_code_map"]
+packages = ["src"]
 
 [tool.ruff]
 line-length = 100
@@ -123,7 +123,7 @@ indent-style = "space"
 skip-magic-trailing-comma = false
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -131,7 +131,8 @@ strict_optional = true
 no_implicit_reexport = true
 check_untyped_defs = true
 
-[tool.mypy."project_code_map.*"]
+[[tool.mypy.overrides]]
+module = "src.*"
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
@@ -140,9 +141,10 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "--strict-markers --strict-config -v"
+pythonpath = ["src"]
 
 [tool.coverage.run]
-source = ["src/project_code_map"]
+source = ["src"]
 omit = ["tests/*", "*/__pycache__/*"]
 
 [tool.coverage.report]

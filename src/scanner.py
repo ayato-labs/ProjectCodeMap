@@ -1,6 +1,5 @@
 """プロジェクトスキャナ"""
 
-import os
 from pathlib import Path
 from typing import Optional
 
@@ -9,17 +8,17 @@ from pathspec.patterns import GitWildMatchPattern
 
 from .config import Config
 from .models import DirNode, FileNode, ProjectMap, ProjectStats
-from .parser import get_parser, ParserBase
+from .parser import ParserBase, get_parser
 
 
-def _load_gitignore(root: Path) -> Optional[PathSpec]:
-    """ルートの .gitignore を読み込み PathSpec を生成"""
-    gitignore = root / ".gitignore"
-    if not gitignore.exists():
+def _load_ignore_file(root: Path, filename: str) -> Optional[PathSpec]:
+    """指定された無視ファイルを読み込み PathSpec を生成"""
+    ignore_file = root / filename
+    if not ignore_file.exists():
         return None
 
     patterns = []
-    for line in gitignore.read_text(encoding="utf-8").splitlines():
+    for line in ignore_file.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if line and not line.startswith("#"):
             patterns.append(line)
@@ -34,10 +33,14 @@ def _should_exclude(
     path: Path,
     root: Path,
     config: Config,
-    spec: Optional[PathSpec],
+    specs: list[PathSpec],
     exclude_log_dirs: set[str],
 ) -> bool:
     """除外判定"""
+    # 無視ファイル自体は常に除外
+    if path.name in (".gitignore", ".pcmignore"):
+        return True
+
     # 隠しファイル/ディレクトリ
     if not config.include_hidden and path.name.startswith("."):
         return True
@@ -51,14 +54,15 @@ def _should_exclude(
     if path.name in exclude_log_dirs:
         return True
 
-    # .gitignore ベース
-    if config.respect_gitignore and spec:
+    # 無視ファイル (.gitignore, .pcmignore) ベース
+    if config.respect_gitignore:
         rel = path.relative_to(root)
         rel_str = str(rel)
         if path.is_dir():
             rel_str += "/"
-        if spec.match_file(rel_str):
-            return True
+        for spec in specs:
+            if spec.match_file(rel_str):
+                return True
 
     return False
 
@@ -66,7 +70,15 @@ def _should_exclude(
 def scan_project(root: Path, config: Config) -> ProjectMap:
     """プロジェクトをスキャンして ProjectMap を構築"""
     root = root.resolve()
-    spec = _load_gitignore(root)
+
+    # 無視ファイルを読み込み
+    specs: list[PathSpec] = []
+    if config.respect_gitignore:
+        for filename in (".gitignore", ".pcmignore"):
+            spec = _load_ignore_file(root, filename)
+            if spec:
+                specs.append(spec)
+
     exclude_log_dirs = {"log", "logs", ".logs"}
 
     # パーサーを事前初期化（言語名でキー管理）
@@ -92,7 +104,7 @@ def scan_project(root: Path, config: Config) -> ProjectMap:
             return
 
         for entry in entries:
-            if _should_exclude(entry, root, config, spec, exclude_log_dirs):
+            if _should_exclude(entry, root, config, specs, exclude_log_dirs):
                 continue
 
             if entry.is_dir():
@@ -121,7 +133,9 @@ def scan_project(root: Path, config: Config) -> ProjectMap:
     return ProjectMap(root=root_node, stats=stats)
 
 
-def _process_file(file_path: Path, root: Path, config: Config, parsers: dict[str, ParserBase]) -> Optional[FileNode]:
+def _process_file(
+    file_path: Path, root: Path, config: Config, parsers: dict[str, ParserBase]
+) -> Optional[FileNode]:
     """単一ファイルを処理"""
     try:
         stat = file_path.stat()

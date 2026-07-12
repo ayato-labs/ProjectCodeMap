@@ -1,26 +1,10 @@
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Optional
+from pathlib import Path
 
-
-@dataclass(slots=True)
-class FunctionDef:
-    """関数定義の情報"""
-
-    name: str
-    signature: str
-    docstring: Optional[str] = None
-    line_start: int = 0
-    line_end: int = 0
-    is_async: bool = False
-    is_method: bool = False
-    class_name: Optional[str] = None
-    decorators: list[str] = None
-
-    def __post_init__(self):
-        if self.decorators is None:
-            self.decorators = []
+from ..config import Config
+from ..models import FunctionDef
 
 
 class ParserBase(ABC):
@@ -39,16 +23,17 @@ class ParserBase(ABC):
         pass
 
     @abstractmethod
-    def parse(self, content: str, config: "Config") -> list[FunctionDef]:
+    def parse(self, content: str, config: Config) -> list[FunctionDef]:
         """ソースコードを解析して関数定義リストを返す"""
         pass
 
-    def parse_file(self, file_path: "Path", config: "Config") -> list[FunctionDef]:
+    def parse_file(self, file_path: Path, config: Config) -> list[FunctionDef]:
         """ファイルを読み込んで解析 (デフォルト実装)"""
         content = file_path.read_text(encoding="utf-8")
         return self.parse(content, config)
 
-    def _truncate_docstring(self, docstring: str, max_len: int) -> Optional[str]:
+    @staticmethod
+    def _truncate_docstring(docstring: str, max_len: int) -> str | None:
         """ドックストリングを指定長で切り詰め"""
         if not docstring:
             return None
@@ -69,11 +54,11 @@ def register_parser(parser: ParserBase) -> None:
     _PARSERS[parser.language_name] = parser
 
 
-def get_parser(language: str) -> Optional[ParserBase]:
+def get_parser(language: str) -> ParserBase | None:
     """言語名または拡張子からパーサーを取得"""
     return _PARSERS.get(language)
 
 
 def list_parsers() -> list[str]:
     """利用可能な言語一覧"""
-    return sorted(set(p.language_name for p in _PARSERS.values()))
+    return sorted({p.language_name for p in _PARSERS.values()})

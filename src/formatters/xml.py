@@ -3,9 +3,9 @@
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
-from . import FormatterBase, FormatType, register_formatter
-from ..models import ProjectMap
 from ..config import Config
+from ..models import ProjectMap
+from . import FormatterBase, FormatType, register_formatter
 
 
 class XmlFormatter(FormatterBase):
@@ -41,7 +41,9 @@ class XmlFormatter(FormatterBase):
         dir_elem = ET.SubElement(parent, "directory", name=node.name)
 
         for f in node.files:
-            file_elem = ET.SubElement(dir_elem, "file", name=f.relative_path.name, path=str(f.relative_path))
+            file_elem = ET.SubElement(
+                dir_elem, "file", name=f.relative_path.name, path=str(f.relative_path)
+            )
             if f.language:
                 file_elem.set("language", f.language)
             if f.functions:

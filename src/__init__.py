@@ -6,11 +6,11 @@ __email__ = "saiha@example.com"
 __license__ = "MIT"
 
 from .cli import app
-from .scanner import scan_project
 from .config import Config
-from .models import ProjectMap, FileNode, DirNode, FunctionDef, ProjectStats
-from .formatters import get_formatter, FormatType, list_formatters
+from .formatters import FormatType, get_formatter, list_formatters
+from .models import DirNode, FileNode, FunctionDef, ProjectMap, ProjectStats
 from .parser import get_parser, list_parsers
+from .scanner import scan_project
 
 __all__ = [
     "app",
