@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional
 
 from pathspec import PathSpec
-from pathspec.patterns import GitWildMatchPattern
+from pathspec.patterns import GitWildMatchPattern # type: ignore
 
 from .config import Config
 from .models import DirNode, FileNode, ProjectMap, ProjectStats

@@ -39,7 +39,7 @@ class PHPParser(ParserBase):
     def file_extensions(self) -> list[str]:
         return [".php", ".phtml", ".php7", ".php8"]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.parser = Parser(_PHP_LANGUAGE)
         self.query = _PHP_QUERY
 

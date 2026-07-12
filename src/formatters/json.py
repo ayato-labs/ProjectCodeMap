@@ -3,7 +3,7 @@
 import json
 
 from ..config import Config
-from ..models import ProjectMap
+from ..models import ProjectMap, DirNode
 from . import FormatterBase, FormatType, register_formatter
 
 
@@ -26,7 +26,7 @@ class JsonFormatter(FormatterBase):
         }
         return json.dumps(data, ensure_ascii=False, indent=2)
 
-    def _serialize_dir(self, node):
+    def _serialize_dir(self, node: DirNode) -> dict:
         return {
             "name": node.name,
             "path": str(node.relative_path),

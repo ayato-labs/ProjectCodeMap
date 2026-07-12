@@ -46,6 +46,8 @@ class ParserBase(ABC):
 # パーサーレジストリ
 _PARSERS: dict[str, ParserBase] = {}
 
+__all__ = ["ParserBase", "register_parser", "get_parser", "list_parsers", "FunctionDef"]
+
 
 def register_parser(parser: ParserBase) -> None:
     """パーサーを登録"""

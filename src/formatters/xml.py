@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
 from ..config import Config
-from ..models import ProjectMap
+from ..models import ProjectMap, DirNode
 from . import FormatterBase, FormatType, register_formatter
 
 
@@ -37,7 +37,7 @@ class XmlFormatter(FormatterBase):
         reparsed = minidom.parseString(rough)
         return reparsed.toprettyxml(indent="  ")
 
-    def _serialize_dir(self, node, parent):
+    def _serialize_dir(self, node: DirNode, parent: ET.Element) -> None:
         dir_elem = ET.SubElement(parent, "directory", name=node.name)
 
         for f in node.files:

@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
 from ..config import Config
-from ..models import ProjectMap
+from ..models import ProjectMap, DirNode
 from . import FormatterBase, FormatType, register_formatter
 
 
@@ -51,7 +51,7 @@ class XMLFormatter(FormatterBase):
         reparsed = minidom.parseString(rough)
         return reparsed.toprettyxml(indent="  ")
 
-    def _add_dir_element(self, parent, dir_node):
+    def _add_dir_element(self, parent: ET.Element, dir_node: DirNode) -> None:
         dir_elem = ET.SubElement(parent, "directory")
         dir_elem.set("name", dir_node.name)
         dir_elem.set("path", str(dir_node.relative_path))
@@ -85,7 +85,7 @@ class JSONFormatter(FormatterBase):
         }
         return json.dumps(data, indent=2, ensure_ascii=False)
 
-    def _dir_to_dict(self, dir_node):
+    def _dir_to_dict(self, dir_node: DirNode) -> dict:
         return {
             "name": dir_node.name,
             "path": str(dir_node.relative_path),
@@ -101,7 +101,7 @@ class JSONFormatter(FormatterBase):
             "subdirectories": [self._dir_to_dict(s) for s in dir_node.subdirs],
         }
 
-    def _functions_to_list(self, project_map: ProjectMap):
+    def _functions_to_list(self, project_map: ProjectMap) -> list[dict]:
         result = []
         for file_node in project_map.root.all_files:
             if not file_node.functions:

@@ -1,7 +1,7 @@
 """Text/Markdown formatters"""
 
 from ..config import Config
-from ..models import ProjectMap
+from ..models import ProjectMap, DirNode
 from . import FormatterBase, FormatType, register_formatter
 
 
@@ -54,7 +54,7 @@ class TextFormatter(FormatterBase):
 
         return "\n".join(lines)
 
-    def _render_dir(self, dir_node, lines: list[str], level: int):
+    def _render_dir(self, dir_node: DirNode, lines: list[str], level: int) -> None:
         indent = "  " * level
         if level == 0:
             lines.append(f"{indent}{dir_node.name}/")
@@ -118,7 +118,7 @@ class MarkdownFormatter(FormatterBase):
 
         return "\n".join(lines)
 
-    def _render_dir_md(self, dir_node, lines: list[str], level: int, is_last: bool):
+    def _render_dir_md(self, dir_node: DirNode, lines: list[str], level: int, is_last: bool) -> None:
         indent = "  " * level
         prefix = "└── " if is_last else "├── "
         lines.append(f"{indent}{prefix}{dir_node.name}/")

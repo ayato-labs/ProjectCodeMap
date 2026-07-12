@@ -1,7 +1,7 @@
 """Markdown フォーマッタ"""
 
 from ..config import Config
-from ..models import ProjectMap
+from ..models import ProjectMap, DirNode
 from . import FormatterBase, FormatType, register_formatter
 
 
@@ -41,7 +41,7 @@ class MarkdownFormatter(FormatterBase):
 
         return "\n".join(lines)
 
-    def _format_tree(self, node, level: int) -> list[str]:
+    def _format_tree(self, node: DirNode, level: int) -> list[str]:
         indent = "  " * level
         lines = []
 
@@ -64,7 +64,7 @@ class MarkdownFormatter(FormatterBase):
 
         return lines
 
-    def _format_functions(self, node, lines: list[str]) -> None:
+    def _format_functions(self, node: DirNode, lines: list[str]) -> None:
         for f in node.files:
             if f.functions:
                 lines.append(f"### {f.relative_path}")
