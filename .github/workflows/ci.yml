@@ -96,7 +96,7 @@ jobs:
   build-exe:
     name: Build Windows Executable
     runs-on: windows-latest
-    needs: [lint, test]
+    needs: [release]
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -113,31 +113,63 @@ jobs:
           pip install -e ".[dev]"
           pip install pyinstaller
 
+      - name: Generate version file
+        shell: powershell
+        run: |
+          $version = "${{ needs.release.outputs.version }}"
+          $tuple = $version.Replace('.', ',') + ',0'
+          $versionFile = @"
+          VSVersionInfo(
+            ffi=FixedFileInfo(
+              filevers=($tuple),
+              prodvers=($tuple),
+              mask=0x3f,
+              flags=0x0,
+              OS=0x40004,
+              fileType=0x1,
+              subtype=0x0,
+              date=(0, 0)
+            ),
+            kids=[
+              StringFileInfo(
+                [
+                  StringTable(
+                    '040904B0',
+                    [StringStruct('FileVersion', '$version'),
+                     StringStruct('ProductVersion', '$version')])
+                ]
+              ),
+              VarFileInfo([VarStruct('Translation', [1033, 1200])])
+            ]
+          )
+          "@
+          $versionFile | Out-File -FilePath version_info.txt -Encoding utf8
+
       - name: Build executable with PyInstaller
         shell: bash
         run: |
           pyinstaller --onefile --name project-code-map \
+            --version-file=version_info.txt \
             --collect-data tree_sitter_python \
             --collect-data tree_sitter_php \
             src/cli.py
-
-
 
       - name: Test executable
         run: |
           ./dist/project-code-map.exe --help
           ./dist/project-code-map.exe . --format json
 
-      - name: Upload executable artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: project-code-map-windows
-          path: dist/project-code-map.exe
+          files: dist/project-code-map.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release:
     name: Semantic Release
     runs-on: ubuntu-latest
-    needs: [build, build-exe]
+    needs: [build]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     permissions:
       contents: write
@@ -145,6 +177,8 @@ jobs:
       pull-requests: write
       id-token: write
     timeout-minutes: 15
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -160,12 +194,6 @@ jobs:
         run: |
           pip install python-semantic-release[twine]
 
-      - name: Download executable artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: project-code-map-windows
-          path: dist/
-
       - name: Run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -173,3 +201,9 @@ jobs:
         run: |
           semantic-release version --noop
           semantic-release publish
+
+      - name: Get version
+        id: get_version
+        run: |
+          VERSION=$(git describe --tags --abbrev=0)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
