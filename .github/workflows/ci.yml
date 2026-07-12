@@ -53,8 +53,9 @@ jobs:
       - name: Run type checks
         run: mypy src/
 
-       - name: Run tests
-         run: pytest --cov=src --cov-report=xml
+      - name: Run tests
+        run: pytest --cov=src --cov-report=xml
+
 
 
       - name: Upload coverage
@@ -112,12 +113,13 @@ jobs:
           pip install -e ".[dev]"
           pip install pyinstaller
 
-       - name: Build executable with PyInstaller
-         run: |
-           pyinstaller --onefile --name project-code-map \
-             --collect-data tree_sitter_python \
-             --collect-data tree_sitter_php \
-             src/cli.py
+      - name: Build executable with PyInstaller
+        run: |
+          pyinstaller --onefile --name project-code-map \
+            --collect-data tree_sitter_python \
+            --collect-data tree_sitter_php \
+            src/cli.py
+
 
 
       - name: Test executable
