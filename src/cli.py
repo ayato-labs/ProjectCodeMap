@@ -8,7 +8,7 @@ import typer
 from rich.console import Console
 from rich.panel import Panel
 
-from ..config import load_config
+from .config import load_config
 from .formatters import FormatType, get_formatter
 from .scanner import scan_project
 
