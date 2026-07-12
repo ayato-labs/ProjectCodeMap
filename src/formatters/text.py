@@ -118,7 +118,9 @@ class MarkdownFormatter(FormatterBase):
 
         return "\n".join(lines)
 
-    def _render_dir_md(self, dir_node: DirNode, lines: list[str], level: int, is_last: bool) -> None:
+    def _render_dir_md(
+        self, dir_node: DirNode, lines: list[str], level: int, is_last: bool
+    ) -> None:
         indent = "  " * level
         prefix = "└── " if is_last else "├── "
         lines.append(f"{indent}{prefix}{dir_node.name}/")
